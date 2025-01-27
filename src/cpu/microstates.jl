@@ -10,7 +10,7 @@ end
 
 #
 #       Function microstate for discrete time series.
-function microstates(data::Array{Union{Float32, Float64}, 2}, threshold, settings::MicrostateSettings; samples_percent::Float64 = 0.2, recurr::Function = recurrence)
+function microstates(data::AbstractArray, threshold, settings::MicrostateSettings; samples_percent::Float64 = 0.2, recurr::Function = recurrence)
     return microstates(data, data, threshold, settings; samples_percent = samples_percent, recurr = recurr)
 end
 
