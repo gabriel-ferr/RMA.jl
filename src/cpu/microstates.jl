@@ -25,7 +25,7 @@ function microstates(time, data, threshold, vicinity, settings::MicrostateSettin
         end
     end
 
-    return microstates(data[:, pos], threshold, settings; samples_percent = samples_percent, recurr = recurr)
+    return microstates(data[:, new_pos], threshold, settings; samples_percent = samples_percent, recurr = recurr)
 end
 
 #
