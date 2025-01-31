@@ -3,6 +3,7 @@
 #       Calculates the probability of recurrence microstates for a generalized data.
 function microstates(data_x::AbstractArray, data_y::AbstractArray, threshold, settings::MicrostateSettings; samples_percent::Float64 = 0.2, recurr::Function = recurrence)
     if (settings.use_dict)
+        return _microstates_with_dictionaries(data_x, data_y, threshold, settings; samples_percent = samples_percent, recurr = recurr)
     else
         return _microstates_with_vectors(data_x, data_y, threshold, settings; samples_percent = samples_percent, recurr = recurr)
     end
@@ -26,6 +27,130 @@ function microstates(time, data, threshold, vicinity, settings::MicrostateSettin
     end
 
     return microstates(data[:, new_pos], threshold, settings; samples_percent = samples_percent, recurr = recurr)
+end
+
+#
+#       Calculates the probability of recurrence microstates for a generalized data using dictionaries.
+function _microstates_with_dictionaries(data_x::AbstractArray, data_y::AbstractArray, threshold, settings::MicrostateSettings; samples_percent::Float64 = 0.2, recurr::Function = recurrence)
+    #
+    #       Verify data and power vector compatibilities.
+    d_x = ndims(data_x) - 1
+    d_y = ndims(data_y) - 1
+    D = d_x + d_y
+
+    if (d_x != d_y)
+        throw("The number of dimensions of data_x and data_y must be equal.")
+    end
+    if (length(settings.structure) != D)
+        throw("The configured Power Vector and the given data are not compatible.")
+    end
+
+    rp_hypervolume = reduce(*, size(data_x)[2:end]) * reduce(*, size(data_y)[2:end])
+    samples_n = Int(floor(samples_percent * rp_hypervolume))
+
+    samples = zeros(Int, D, samples_n)
+    for dim in 1:d_x
+        samples[dim, :] .= rand(1:(size(data_x, dim + 1) - (settings.structure[dim] - 1)), samples_n)
+        samples[d_x + dim, :] .= rand(1:(size(data_y, dim + 1) - (settings.structure[d_x + dim] - 1)), samples_n)
+    end
+
+    dtype = Int8
+    if (samples_n > typemax(Int8))
+        dtype = Int16
+    end
+    if (samples_n > typemax(Int16))
+        dtype = Int32
+    end
+    if (samples_n > typemax(Int32))
+        dtype = Int64
+    end
+    if (samples_n > typemax(Int64))
+        dtype = Int128
+    end
+    if (samples_n > typemax(Int128))
+        println("Because the number of samples exceeds the storage capacity of an Int128, it is possible for a state to be overloaded.")
+    end
+
+    #
+    #       Calculates the probabilities async.
+    function _async_microstates(samples_index, th_index)
+        indexes = zeros(Int, length(settings.structure))
+        dict = Dict{settings.indextype, dtype}()
+
+        #       Some variables used in the calculation
+        p = 0
+        add::settings.indextype = 0
+        counter = 0
+
+        for col in samples_index
+            add = setting.indextype(0)
+            indexes = zeros(Int, length(settings.structure))
+
+            for m in eachindex(settings.vect)
+                add = add + settings.vect[m] * recurr(data_x[:, (samples[1:d_x, col] .+ indexes[1:d_x])...], data_y[:, (samples[d_x+1:end, col] .+ indexes[d_x+1:end])...], threshold)
+                
+                indexes[1] += 1
+                for k in 1:length(settings.structure) - 1
+                    if (indexes[k] >= settings.structure[k])
+                        indexes[k] = 0
+                        indexes[k+1] += 1
+                    else
+                        break
+                    end
+                end
+            end
+
+            p = settings.indextype(add) + setting.indextype(1)
+            dict[p] = get(dict, p, dtype(0)) + dtype(1)
+            counter += 1
+        end
+
+        return dict, counter
+    end
+
+    #
+    #       Split the work between the threads.
+    int_numb = Int(floor(size(samples, 2) ./ Threads.nthreads()))
+    rest_samples = size(samples, 2) - Threads.nthreads() * int_numb
+
+    numb_init = int_numb
+    if (rest_samples > 0)
+        numb_init += 1
+        rest_samples -= 1
+    end
+
+    samples_idx = [1:numb_init]
+    for i = 1:Threads.nthreads() - 1
+        numb = int_numb
+        if (rest_samples > 0)
+            numb += 1
+            rest_samples -= 1
+        end
+
+        push!(samples_idx, ((samples_idx[i][end] + 1):samples_idx[i][end] + numb))
+    end
+
+    tasks = []
+    for i = 1:Threads.nthreads()
+        push!(tasks, Threads.@spawn _async_microstates(samples_idx[i], i))
+    end
+
+    results = fetch.(tasks)
+    cnt = 0
+
+    res = Dict{settings.indextype, settings.datatype}()
+    for i = 1:Threads.nthreads()
+        cnt += results[i][2]
+    end
+
+    for i = 1:Threads.nthreads()
+        res_keys = collect(keys(results[i][1]))
+        for k in res_keys
+            res[k] = get(res, k, 0) + (results[i][1][k] / cnt)
+        end
+    end
+
+    return res, cnt
 end
 
 #
@@ -93,6 +218,8 @@ function _microstates_with_vectors(data_x::AbstractArray, data_y::AbstractArray,
                     if (indexes[k] >= settings.structure[k])
                         indexes[k] = 0
                         indexes[k+1] += 1
+                    else
+                        break
                     end
                 end
             end
