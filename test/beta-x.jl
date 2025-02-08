@@ -7,7 +7,7 @@ using JLD2
 rng = MersenneTwister()
 Random.seed!()
 
-const n = 2
+const n = 4
 const beta = 2.99
 const timesize = 1000
 const threshold = 0.2
