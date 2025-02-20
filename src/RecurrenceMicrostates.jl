@@ -27,6 +27,7 @@ module RecurrenceMicrostates
     include("utils/vector.jl")
     include("cpu/microstates.jl")
     include("cpu/recurrence.jl")
+    include("utils/entropy.jl")
 
     #
     #       Exports
