@@ -22,15 +22,19 @@
     #       Libraries needed for the code to work.
     using Distances
 
+    #       Metrics
+    const euclidean_metric = Euclidean()
+
     #
     #       Import of the source code parts.
     include("cpu/recurrence.jl")
-    include("cpu/microstates.jl")
-    
-    include("cpu/vect/square_random.jl")
+    include("cpu/histogram.jl")
+    include("cpu/square_index.jl")
+
+    include("cpu/vect/vect_square_random.jl")
 
     #
     #       Exports
-#    export microstates
+#    export histogram
 #end
 #       ----- END CODE

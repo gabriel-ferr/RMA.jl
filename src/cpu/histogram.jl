@@ -2,7 +2,7 @@
 #           
 #
 
-function microstates(data_x::AbstractArray, data_y::AbstractArray, threshold, structure::AbstractVector{Int}; shape::Symbol = :square, run_mode::Symbol = :default, sampling_mode::Symbol = :random, num_samples::Union{Int, Float64} = 1.0, func::Function = recurrence, use_threads::Bool = true)
+function histogram(data_x::AbstractArray, data_y::AbstractArray, threshold, structure::AbstractVector{Int}; shape::Symbol = :square, run_mode::Symbol = :default, sampling_mode::Symbol = :random, num_samples::Union{Int, Float64} = 1.0, func = (x, y, p, ix, dim, sdim) -> recurrence(x, y, p, ix, dim, sdim), use_threads::Bool = true)
     
     #       Verify the arguments
     if (length(structure) < 2)
@@ -20,13 +20,31 @@ function microstates(data_x::AbstractArray, data_y::AbstractArray, threshold, st
         throw(ArgumentError("The structure and the given data are not compatible."))
     end
 
+    #       Number of samples
+    total_microstates = 1
+    space_size::Vector{Int} = []
+    for d in 1:d_x
+        len = size(data_x, d + 1) - structure[d]
+
+        total_microstates *= len
+        push!(space_size, len)
+    end
+    for d in 1:d_y
+        len = size(data_y, d + 1) - structure[d_x + d]
+
+        total_microstates *= len
+        push!(space_size, len)
+    end
+
     if (num_samples isa Float64 || num_samples == 1)
         if (num_samples <= 0 || num_samples > 1)
-            throw(ArgumentError("num_samples as a fraction must be in the range (0, 1]."))
+            throw(ArgumentError("num_samples must be in the range (0, 1]."))
         end
-        num_samples = 0 # TODO
+        num_samples = Int(round(num_samples * total_microstates))
     else
-        # TODO
+        if (num_samples <= 0 || num_samples > total_microstates)
+            throw(ArgumentError(string("num_samples must be in the range (1, ", total_microstates,"] for the given data.")))
+        end
     end
 
     #       Compute the hypervolume.
@@ -40,11 +58,14 @@ function microstates(data_x::AbstractArray, data_y::AbstractArray, threshold, st
     if (use_dict)
         throw("Not implemented yet") # TODO
     else
+        if (hypervolume > 64)
+            throw(ArgumentError("Due to memory limitations imposed by Julia, the hyper-volume of a microstate cannot exceed 64."))
+        end
         if (shape == :square)
             if (sampling_mode == :full)
                 throw("Not implemented yet") # TODO
             elseif (sampling_mode == :random)
-                return use_threads ? throw("Not implemented yet") : square_random(data_x, data_y, threshold, structure, num_samples, func)
+                return use_threads ? throw("Not implemented yet") : square_random(data_x, data_y, threshold, structure, space_size, num_samples, func, (d_x, d_y), hypervolume)
             else
                 throw(ArgumentError("Invalid sampling mode. Use :full or :random"))
             end
