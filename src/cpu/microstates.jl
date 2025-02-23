@@ -2,7 +2,7 @@
 #           
 #
 
-function histogram(data_x::AbstractArray, data_y::AbstractArray, threshold, structure::AbstractVector{Int}; shape::Symbol = :square, run_mode::Symbol = :default, sampling_mode::Symbol = :random, num_samples::Union{Int, Float64} = 1.0, func = (x, y, p, ix, dim, sdim) -> recurrence(x, y, p, ix, dim, sdim), use_threads::Bool = true)
+function microstates(data_x::AbstractArray, data_y::AbstractArray, threshold, structure::AbstractVector{Int}; shape::Symbol = :square, run_mode::Symbol = :default, sampling_mode::Symbol = :random, num_samples::Union{Int, Float64} = 1.0, func = (x, y, p, ix, dim, sdim) -> recurrence(x, y, p, ix, dim, sdim), use_threads::Bool = true)
     
     #       Verify the arguments
     if (length(structure) < 2)
@@ -65,7 +65,8 @@ function histogram(data_x::AbstractArray, data_y::AbstractArray, threshold, stru
             if (sampling_mode == :full)
                 throw("Not implemented yet") # TODO
             elseif (sampling_mode == :random)
-                return use_threads ? throw("Not implemented yet") : square_random(data_x, data_y, threshold, structure, space_size, num_samples, func, (d_x, d_y), hypervolume)
+                histogram =  use_threads ? square_random_async(data_x, data_y, threshold, structure, space_size, num_samples, func, [d_x, d_y], hypervolume) : square_random(data_x, data_y, threshold, structure, space_size, num_samples, func, [d_x, d_y], hypervolume)
+                return histogram ./ sum(histogram)
             else
                 throw(ArgumentError("Invalid sampling mode. Use :full or :random"))
             end

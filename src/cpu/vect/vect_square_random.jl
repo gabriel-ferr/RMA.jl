@@ -2,7 +2,7 @@
 #           
 #
 
-function square_random(data_x::AbstractArray, data_y::AbstractArray, threshold, structure::AbstractVector{Int}, space_size::AbstractVector{Int}, num_samples::Int, func::F, dim::Tuple{Int, Int}, hypervolume::Int) where {F}
+function square_random(data_x::AbstractArray, data_y::AbstractArray, threshold, structure::AbstractVector{Int}, space_size::AbstractVector{Int}, num_samples::Int, func::F, dim::AbstractVector{Int}, hypervolume::Int) where {F}
     #
     #       Alloc memory for histogram and the index list
     hg = zeros(Int, 2^hypervolume)

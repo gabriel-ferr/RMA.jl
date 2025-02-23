@@ -28,13 +28,14 @@
     #
     #       Import of the source code parts.
     include("cpu/recurrence.jl")
-    include("cpu/histogram.jl")
+    include("cpu/microstates.jl")
     include("cpu/square_index.jl")
 
     include("cpu/vect/vect_square_random.jl")
+    include("cpu/vect/vect_square_random_async.jl")
 
     #
     #       Exports
-#    export histogram
+#    export microstates
 #end
 #       ----- END CODE
