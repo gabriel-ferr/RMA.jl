@@ -48,7 +48,7 @@ add https://github.com/gabriel-ferr/RecurrenceMicrostates.jl
 There is no published article yet. If you use this library in your research, please cite the GitHub repository:
 ```bibtex
 @misc{recurrence-microstates
-    author = {Gabriel Vinicius Ferreira and Thiago de Lima Prado and Sérgio Roberto Lopes},
+    author = {Gabriel Vinicius Ferreira and Gabriel Marghoti and Thiago de Lima Prado and Sérgio Roberto Lopes},
     title = {RecurrenceMicrostates.jl},
     year = {2025},
     publisher = {GitHub},
