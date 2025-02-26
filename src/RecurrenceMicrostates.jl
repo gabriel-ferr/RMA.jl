@@ -9,7 +9,7 @@
 #   so that it can be applied to any data situation, such as time series, images, or 
 #   high-dimensional data.
 #
-#       GitHub: https://github.com/gabriel-ferr/RecurrenceMicrostates.jl
+#       GitHub - Julia Version: https://github.com/gabriel-ferr/RecurrenceMicrostates.jl
 #
 #       References:
 #   [1] J.-P. Eckmann, S. O. Kamphorst, and D. Ruelle, Europhys. Lett 4, 973 (1987).
@@ -17,16 +17,18 @@
 #   [3] N. Marwan, J. Kurths, and P. Saparin, Physics Letters A 360, 545 (2007).
 #
 #       ----- BEGIN CODE
-module RecurrenceMicrostates
+#module RecurrenceMicrostates
     #
     #       Libraries needed for the code to work.
     using Distances
 
+    #       Metrics
+    const euclidean_metric = Euclidean()
+
     #
     #       Import of the source code parts.
-    include("utils/vector.jl")
-    include("cpu/microstates.jl")
     include("cpu/recurrence.jl")
+<<<<<<< HEAD
     include("utils/entropy.jl")
 
     #
@@ -35,3 +37,16 @@ module RecurrenceMicrostates
     export microstates
 end
 #       ----- END CODE
+=======
+    include("cpu/microstates.jl")
+    include("cpu/square_index.jl")
+
+    include("cpu/vect/vect_square_random.jl")
+    include("cpu/vect/vect_square_random_async.jl")
+
+    #
+    #       Exports
+#    export microstates
+#end
+#       ----- END CODE
+>>>>>>> mod-01

@@ -1,10 +1,15 @@
 #
-#           Standard Recurrence
-function recurrence(x::AbstractVector, y::AbstractVector, threshold::Union{Float32, Float64})
-    return (threshold - euclidean(x, y)) >= 0 ? Int8(1) : Int8(0)
+#           
+#
+@inline function recurrence(x::AbstractArray, y::AbstractArray, threshold::Float64, idx::AbstractVector{Int}, dim::AbstractVector{Int}, sdim::Int)
+    #   TODO - Fix the memory allocation "bottleneck" that Julia causes in this piece of code.
+    #       I really don't know how I can fix it =/
+    return @inbounds evaluate(euclidean_metric, view(x, :, view(idx, 1:dim[1])), view(y, :, view(idx, dim[1]+1:sdim))) <= threshold
 end
 #
-#           Corridor Recurrence
-function recurrence(x::AbstractVector, y::AbstractVector, threshold::Tuple{Union{Float32, Float64}, Union{Float32, Float64}})
-    return ((euclidean(x, y) - threshold[1]) >= 0 ? Int8(1) : Int8(0)) * (threshold[2] - euclidean(x, y)) >= 0 ? Int8(1) : Int8(0)
+#
+@inline function recurrence(x::AbstractArray, y::AbstractArray, threshold::Tuple{Float64, Float64}, idx::AbstractVector{Int}, dim::AbstractVector{Int}, sdim::Int)
+    #   TODO - Same thing...
+    distance = @inbounds evaluate(euclidean_metric, view(x, :, view(idx, 1:dim[1])), view(y, :, view(idx, dim[1]+1:sdim)))
+    return ( distance >= threshold[1] && distance <= threshold[2])
 end
