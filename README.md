@@ -20,8 +20,8 @@ The library simply uses the package Distances.jl, that is installed along with t
   With the Julia terminal open, type:
 
 ```julia
-using Pkg;
-Pkg.add(url="https://github.com/gabriel-ferr/RecurrenceMicrostates.jl");
+using Pkg
+Pkg.add(url="https://github.com/gabriel-ferr/RecurrenceMicrostates.jl")
 ```
 
 2. Using the Pkg REPL mode (press `]` in the Julia terminal):
