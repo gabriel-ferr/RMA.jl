@@ -17,7 +17,7 @@
 #   [3] N. Marwan, J. Kurths, and P. Saparin, Physics Letters A 360, 545 (2007).
 #
 #       ----- BEGIN CODE
-#module RecurrenceMicrostates
+module RecurrenceMicrostates
     #
     #       Libraries needed for the code to work.
     using Distances
@@ -28,25 +28,13 @@
     #
     #       Import of the source code parts.
     include("cpu/recurrence.jl")
-<<<<<<< HEAD
-    include("utils/entropy.jl")
-
-    #
-    #       Exports
-    export power_vector
-    export microstates
-end
-#       ----- END CODE
-=======
-    include("cpu/microstates.jl")
     include("cpu/square_index.jl")
-
     include("cpu/vect/vect_square_random.jl")
     include("cpu/vect/vect_square_random_async.jl")
 
+    include("cpu/microstates.jl")
     #
     #       Exports
-#    export microstates
-#end
-#       ----- END CODE
->>>>>>> mod-01
+    export microstates
+end
+#        ----- END CODE
