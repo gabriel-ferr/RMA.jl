@@ -1,6 +1,6 @@
 #
 #           RecurrenceMicrostates.jl
-#       By Gabriel Vinicius Ferreira (https://github.com/gabriel-ferr)
+#       By Gabriel Vinicius Ferreira (https://github.com/gabriel-ferr), Gabriel Marghoti (https://github.com/GabrielMarghoti)
 #       Advisors: Thiago de Lima Prado and Sérgio Roberto Lopes
 #
 #           Abstract: The idea of this project is to create a standard library that
@@ -29,12 +29,19 @@ module RecurrenceMicrostates
     #       Import of the source code parts.
     include("cpu/recurrence.jl")
     include("cpu/square_index.jl")
+    include("cpu/triangle_index.jl")
+    include("cpu/vect/vect_square_full.jl")
     include("cpu/vect/vect_square_random.jl")
     include("cpu/vect/vect_square_random_async.jl")
+    include("cpu/vect/vect_square_columnwise.jl")
+    include("cpu/vect/vect_triangle_random.jl")
+    include("cpu/vect/vect_triangle_random_async.jl")
 
     include("cpu/microstates.jl")
+    include("rma/vect_entropy.jl")
     #
     #       Exports
     export microstates
+    export entropy
 end
 #        ----- END CODE

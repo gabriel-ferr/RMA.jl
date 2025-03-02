@@ -1,20 +1,22 @@
 #
-#           
+#       TODO - Find where this code is allocating memory (912B -> 29.65MiB)
 #
-
-function square_random_async(data_x::AbstractArray, data_y::AbstractArray, threshold, structure::AbstractVector{Int}, space_size::AbstractVector{Int}, num_samples::Int, func::F, dim::AbstractVector{Int}, hypervolume::Int) where {F}
+function triangle_random_async(data_x::AbstractArray, data_y::AbstractArray, threshold, structure::AbstractVector{Int}, space_size::AbstractVector{Int}, num_samples::Int, func::F, dim::AbstractVector{Int}) where {F}
     #
     #       Compute the Power Vector
-    p_vect = zeros(Int, hypervolume)
-    for i in 1:hypervolume
-        p_vect[i] = 2^(i-1)
+    p_vect::Vector{Int} = []
+    exponent = 0
+    for j = 1:structure[2]
+        for _ = j:structure[1]
+            push!(p_vect, 2^exponent)
+            exponent += 1
+        end
     end
 
-    #
-    #       Creates a function to work as our async task.
-    function square_random_task(segment::UnitRange{Int})
-        hg = zeros(Int, 2^hypervolume)
-        idx = zeros(Int, length(space_size))
+    function triangle_random_task(segment::UnitRange{Int})
+        #       Alloc memory for histogram and the index list
+        hg = zeros(Int, 2^exponent)
+        idx = ones(Int, length(space_size))
         recursive_index = zeros(Int, length(structure))
 
         @inbounds for _ in segment
@@ -22,7 +24,7 @@ function square_random_async(data_x::AbstractArray, data_y::AbstractArray, thres
                 idx[s] = rand(1:space_size[s])
             end
 
-            @fastmath hg[compute_square_index(data_x, data_y, threshold, structure, func, dim, idx, recursive_index, p_vect)] += 1
+            @fastmath hg[compute_triangle_index(data_x, data_y, threshold, structure, func, dim, idx, recursive_index, p_vect)] += 1
         end
 
         return hg
@@ -40,7 +42,7 @@ function square_random_async(data_x::AbstractArray, data_y::AbstractArray, thres
         incrementor = int_sampling_value + (rest_sampling_value > 0 ? 1 : 0)
         segment = start_value:start_value+incrementor - 1
 
-        push!(tasks, Threads.@spawn square_random_task(segment))
+        push!(tasks, Threads.@spawn triangle_random_task(segment))
 
         start_value += incrementor
         if (rest_sampling_value > 0)
@@ -50,7 +52,7 @@ function square_random_async(data_x::AbstractArray, data_y::AbstractArray, thres
 
     results = fetch.(tasks)
 
-    res = zeros(Int, 2^hypervolume)
+    res = zeros(Int, 2^exponent)
     for r in results
         res .+= r
     end

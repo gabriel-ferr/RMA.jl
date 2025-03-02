@@ -2,7 +2,7 @@
 #           
 #
 
-function microstates(data_x::AbstractArray, data_y::AbstractArray, threshold, structure::AbstractVector{Int}; shape::Symbol = :square, run_mode::Symbol = :default, sampling_mode::Symbol = :random, num_samples::Union{Int, Float64} = 1.0, func = (x, y, p, ix, dim, sdim) -> recurrence(x, y, p, ix, dim, sdim), use_threads::Bool = true)
+function microstates(data_x::AbstractArray, data_y::AbstractArray, threshold, structure::AbstractVector{Int}; shape::Symbol = :square, run_mode::Symbol = :default, sampling_mode::Symbol = :random, num_samples::Union{Int, Float64} = 1.0, func = (x, y, p, ix, dim) -> recurrence(x, y, p, ix, dim), use_threads::Bool = true)
     
     #       Verify the arguments
     if (length(structure) < 2)
@@ -56,22 +56,43 @@ function microstates(data_x::AbstractArray, data_y::AbstractArray, threshold, st
 
     #       Call the process...
     if (use_dict)
-        throw("Not implemented yet") # TODO
+        throw("Not implemented yet") # TODO - All structures, but using dictionaries
     else
         if (hypervolume > 64)
             throw(ArgumentError("Due to memory limitations imposed by Julia, the hyper-volume of a microstate cannot exceed 64."))
         end
         if (shape == :square)
             if (sampling_mode == :full)
-                throw("Not implemented yet") # TODO
+                histogram = use_threads ? throw("Not implemented yet") : square_full(data_x, data_y, threshold, structure, space_size, num_samples, func, [d_x, d_y], hypervolume, total_microstates) # TODO - Add async version
+                return histogram ./ sum(histogram)
             elseif (sampling_mode == :random)
                 histogram =  use_threads ? square_random_async(data_x, data_y, threshold, structure, space_size, num_samples, func, [d_x, d_y], hypervolume) : square_random(data_x, data_y, threshold, structure, space_size, num_samples, func, [d_x, d_y], hypervolume)
                 return histogram ./ sum(histogram)
+            elseif (sampling_mode == :columnwise)
+                if (length(structure) > 2)
+                    throw(ArgumentError("The sampling mode `:columnwise` is only available for a recurrence space with two dimensions."))
+                end
+                histogram = use_threads ? throw("Not implemented yet") : square_columnwise(data_x, data_y, threshold, structure, space_size, num_samples, func, [d_x, d_y], hypervolume)
+                return histogram
             else
-                throw(ArgumentError("Invalid sampling mode. Use :full or :random"))
+                throw(ArgumentError("Invalid sampling mode. Use :full, :random or :columnwise"))
+            end
+        elseif (shape == :triangle)
+            if (length(structure) > 2)
+                throw(ArgumentError("The shape mode `:triangle` is only available for a recurrence space with two dimensions."))
+            end
+            if (sampling_mode == :full)
+                throw("Not implemented yet") # TODO - Add full version
+            elseif (sampling_mode == :random)
+                histogram = use_threads ? triangle_random_async(data_x, data_y, threshold, structure, space_size, num_samples, func, [d_x, d_y]) : triangle_random(data_x, data_y, threshold, structure, space_size, num_samples, func, [d_x, d_y])
+                return histogram ./ sum(histogram)
+            elseif (sampling_mode == :columnwise)
+                throw(ArgumentError("Not implemented yet.")) # TODO - Add columnwise sampling
+            else
+                throw(ArgumentError("Invalid sampling mode. Use :full, :random or :columnwise"))
             end
         else
-            throw(ArgumentError("Invalid shape. Use :square")) # TODO - Add triangle version
+            throw(ArgumentError("Invalid shape. Use :square or :triangle"))
         end
     end
 end

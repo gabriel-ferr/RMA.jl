@@ -14,7 +14,6 @@ function square_random(data_x::AbstractArray, data_y::AbstractArray, threshold, 
     for i in 1:hypervolume
         p_vect[i] = 2^(i-1)
     end
-    sdim = sum(dim)
     
     #
     #       Do the process...
@@ -23,7 +22,7 @@ function square_random(data_x::AbstractArray, data_y::AbstractArray, threshold, 
             idx[s] = rand(1:space_size[s])
         end
 
-        @fastmath hg[compute_square_index(data_x, data_y, threshold, structure, func, dim, sdim, idx, recursive_index, p_vect)] += 1
+        @fastmath hg[compute_square_index(data_x, data_y, threshold, structure, func, dim, idx, recursive_index, p_vect)] += 1
     end
     #
     #
