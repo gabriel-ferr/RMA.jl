@@ -17,7 +17,7 @@
 #   [3] N. Marwan, J. Kurths, and P. Saparin, Physics Letters A 360, 545 (2007).
 #
 #       ----- BEGIN CODE
-module RecurrenceMicrostates
+module RMA
     #
     #       Libraries needed for the code to work.
     using Distances
@@ -39,9 +39,12 @@ module RecurrenceMicrostates
 
     include("cpu/microstates.jl")
     include("rma/vect_entropy.jl")
+
+    include("utils/prepare.jl")
     #
     #       Exports
     export microstates
     export entropy
+    export prepare
 end
 #        ----- END CODE
